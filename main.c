@@ -107,6 +107,8 @@ void render_map_player(Map map, Cam camera, Vec2 player)
 
 int main(void)
 {
+    Vec2 move_speed = {0.025f, 0.025f};
+
     // Define mini map position and size
     Map map = {{20, 20}, 300, 300, {0, 0}};
     map.ratio.x = (float)map.w / (float)WORLD_WIDTH;
@@ -123,6 +125,13 @@ int main(void)
     SetTargetFPS(60);
 
     while ( ! WindowShouldClose()) {
+        if (IsKeyDown(KEY_UP)) {
+            player = vec2_add(player, vec2_mul(camera.dir, move_speed));
+        }
+        if (IsKeyDown(KEY_DOWN)) {
+            player = vec2_sub(player, vec2_mul(camera.dir, move_speed));
+        }
+
         BeginDrawing();
         ClearBackground(BACKGROUND);
         render_map(map);
