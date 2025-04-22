@@ -27,10 +27,6 @@ Color wall_colors[] = {
 };
 
 typedef struct {
-    int x, y, w, h;
-} Map;
-
-typedef struct {
     float x, y;
 } Vec2;
 
@@ -50,6 +46,11 @@ Vec2 vec2_mul(Vec2 a, Vec2 b)
 }
 
 typedef struct {
+    int x, y, w, h;
+    Vec2 ratio;
+} Map;
+
+typedef struct {
     Vec2 dir;            // Camera direction
     Vec2 plane;          // Camera projection plane
 } Cam;
@@ -57,9 +58,8 @@ typedef struct {
 // Convert world coordinates to map coordinates
 Vec2 world_to_map(Map map, Vec2 v)
 {
-    float x = (float)map.w / (float)WORLD_WIDTH * v.x;
-    float y = (float)map.w / (float)WORLD_HEIGHT * v.y;
-    return (Vec2){x + map.x, y + map.y};
+    Vec2 a = vec2_mul(v, map.ratio);
+    return (Vec2){a.x + map.x, a.y + map.y};
 }
 
 void render_map(Map map)
@@ -108,7 +108,9 @@ void render_map_player(Map map, Cam camera, Vec2 player)
 int main(void)
 {
     // Define mini map position and size
-    Map map = {20, 20, 300, 300};
+    Map map = {20, 20, 300, 300, {0, 0}};
+    map.ratio.x = (float)map.w / (float)WORLD_WIDTH;
+    map.ratio.y = (float)map.h / (float)WORLD_HEIGHT;
 
     Vec2 player = {5.5f, 6.5f};
 
