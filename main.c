@@ -49,6 +49,11 @@ Vec2 vec2_mul(Vec2 a, Vec2 b)
     return (Vec2){a.x * b.x, a.y * b.y};
 }
 
+typedef struct {
+    Vec2 dir;            // Camera direction
+    Vec2 plane;          // Camera projection plane
+} Cam;
+
 // Convert world coordinates to map coordinates
 Vec2 world_to_map(Map map, Vec2 v)
 {
@@ -90,10 +95,14 @@ void render_map(Map map)
     }
 }
 
-void render_map_player(Map map, Vec2 player)
+void render_map_player(Map map, Cam camera, Vec2 player)
 {
-    Vec2 pos = world_to_map(map, player);
-    DrawCircle((int)pos.x, (int)pos.y, 5.0f, RED);
+    Vec2 pp = world_to_map(map, player);
+    DrawCircle((int)pp.x, (int)pp.y, 5.0f, RED);
+
+    Vec2 dp = vec2_add(camera.dir, player);
+    Vec2 mp = world_to_map(map, dp);
+    DrawLine((int)pp.x, (int)pp.y, (int)mp.x, (int)mp.y, BLUE);
 }
 
 int main(void)
@@ -103,6 +112,11 @@ int main(void)
 
     Vec2 player = {5.5f, 6.5f};
 
+    Cam camera = {
+        {-1, 0},
+        {0, -0.66},
+    };
+
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Raycasting in C");
     SetTargetFPS(60);
 
@@ -110,7 +124,7 @@ int main(void)
         BeginDrawing();
         ClearBackground(BACKGROUND);
         render_map(map);
-        render_map_player(map, player);
+        render_map_player(map, camera, player);
         EndDrawing();
     }
 
