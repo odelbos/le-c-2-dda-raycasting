@@ -1,3 +1,4 @@
+#include <math.h>
 #include <raylib.h>
 
 #define BACKGROUND CLITERAL(Color){20, 20, 20, 255}
@@ -43,6 +44,13 @@ Vec2 vec2_sub(Vec2 a, Vec2 b)
 Vec2 vec2_mul(Vec2 a, Vec2 b)
 {
     return (Vec2){a.x * b.x, a.y * b.y};
+}
+
+Vec2 vec2_rotate(Vec2 v, float angle)
+{
+    float ca = cosf(angle);
+    float sa = sinf(angle);
+    return (Vec2){v.x*ca - v.y*sa, v.x*sa + v.y*ca};
 }
 
 typedef struct {
@@ -108,6 +116,7 @@ void render_map_player(Map map, Cam camera, Vec2 player)
 int main(void)
 {
     Vec2 move_speed = {0.025f, 0.025f};
+    float rot_speed = 0.02f;
 
     // Define mini map position and size
     Map map = {{20, 20}, 300, 300, {0, 0}};
@@ -128,8 +137,16 @@ int main(void)
         if (IsKeyDown(KEY_UP)) {
             player = vec2_add(player, vec2_mul(camera.dir, move_speed));
         }
-        if (IsKeyDown(KEY_DOWN)) {
+        else if (IsKeyDown(KEY_DOWN)) {
             player = vec2_sub(player, vec2_mul(camera.dir, move_speed));
+        }
+        else if (IsKeyDown(KEY_LEFT)) {
+            camera.dir = vec2_rotate(camera.dir, -rot_speed);
+            camera.plane = vec2_rotate(camera.plane, -rot_speed);
+        }
+        else if (IsKeyDown(KEY_RIGHT)) {
+            camera.dir = vec2_rotate(camera.dir, rot_speed);
+            camera.plane = vec2_rotate(camera.plane, rot_speed);
         }
 
         BeginDrawing();
