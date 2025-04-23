@@ -240,6 +240,7 @@ void render_rays_map(Map map, Cam camera, Vec2 player)
 
 int main(void)
 {
+    bool show_map = true;
     Vec2 move_speed = {0.025f, 0.025f};
     float rot_speed = 0.02f;
 
@@ -273,13 +274,18 @@ int main(void)
             camera.dir = vec2_rotate(camera.dir, rot_speed);
             camera.plane = vec2_rotate(camera.plane, rot_speed);
         }
+        else if (IsKeyPressed(KEY_M)) {
+            show_map = !show_map;
+        }
 
         BeginDrawing();
         ClearBackground(BACKGROUND);
         render_world(camera, player);
-        render_map(map);
-        render_map_player(map, camera, player);
-        render_rays_map(map, camera, player);
+        if (show_map) {
+            render_map(map);
+            render_map_player(map, camera, player);
+            render_rays_map(map, camera, player);
+        }
         EndDrawing();
     }
 
