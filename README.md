@@ -97,3 +97,15 @@ cd le-c-2-dda-raycasting
 ```console
 ./raycast
 ```
+
+- Arrow keys to move
+- `m` key to show/hide mini map (`,` on french keyboard)
+
+# TODOs
+
+- [X] Render mini map
+- [X] Render world (flat color version)
+- [ ] Limiting the number of casted rays to improve perf ?
+- [ ] Limit player moves (do not traverse wall)
+- [ ] Add walls textures
+- [ ] Add floor rendering
