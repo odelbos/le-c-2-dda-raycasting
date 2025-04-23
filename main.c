@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <math.h>
 #include <raylib.h>
 
@@ -60,14 +61,85 @@ typedef struct {
 } Map;
 
 typedef struct {
-    Vec2 dir;            // Camera direction
-    Vec2 plane;          // Camera projection plane
+    Vec2 dir;                  // Camera direction
+    Vec2 plane;                // Camera projection plane
 } Cam;
+
+typedef struct {
+    Vec2 hit_pos;              // In world coordinates
+    float ray_dist;
+    int cell_x, cell_y, wall;
+    int side;
+} CastResult;
 
 // Convert world coordinates to map coordinates
 Vec2 world_to_map(Map map, Vec2 v)
 {
     return vec2_add(vec2_mul(v, map.ratio), map.pos);
+}
+
+CastResult cast_ray(Vec2 ray_dir, Vec2 player)
+{
+    CastResult res = {{0, 0}, 0, 0, 0, 0, 0};
+
+    res.cell_x = (int)player.x;
+    res.cell_y = (int)player.y;
+
+    float delta_x = (ray_dir.x == 0) ? 1e30 : fabs(1 / ray_dir.x);
+    float delta_y = (ray_dir.y == 0) ? 1e30 : fabs(1 / ray_dir.y);
+
+    int step_x = 1;
+    int step_y = 1;
+    float dist_x;
+    float dist_y;
+
+    if (ray_dir.x < 0) {
+        step_x = -1;
+        dist_x = (player.x - (float)res.cell_x) * delta_x;
+    }
+    else dist_x = ((float)res.cell_x + 1.0 - player.x) * delta_x;
+
+    if (ray_dir.y < 0) {
+        step_y = -1;
+        dist_y = (player.y - (float)res.cell_y) * delta_y;
+    }
+    else dist_y = ((float)res.cell_y + 1.0 - player.y) * delta_y;
+
+    int max = 0;
+    while (max < 15 && res.wall == 0) {
+        if (dist_x < dist_y) {
+            dist_x += delta_x;
+            res.cell_x += step_x;
+            res.side = 0;
+        }
+        else {
+            dist_y += delta_y;
+            res.cell_y += step_y;
+            res.side = 1;
+        }
+
+        if (res.cell_x >= 0 && res.cell_x < WORLD_WIDTH &&
+            res.cell_y >= 0 && res.cell_y < WORLD_HEIGHT) {
+            res.wall = world[res.cell_y][res.cell_x];
+        }
+
+        max++;
+    }
+
+    if (res.wall != 0) {
+        if (res.side == 0) {
+            res.hit_pos = vec2_mul(ray_dir, (Vec2){dist_x - delta_x, dist_x - delta_x});
+            res.hit_pos = vec2_add(res.hit_pos, player);
+            res.ray_dist = dist_x - delta_x;
+        }
+        else {
+            res.hit_pos = vec2_mul(ray_dir, (Vec2){dist_y - delta_y, dist_y - delta_y});
+            res.hit_pos = vec2_add(res.hit_pos, player);
+            res.ray_dist = dist_y - delta_y;
+        }
+    }
+
+    return res;
 }
 
 void render_map(Map map)
@@ -111,6 +183,25 @@ void render_map_player(Map map, Cam camera, Vec2 player)
     Vec2 dp = vec2_add(camera.dir, player);
     Vec2 mp = world_to_map(map, dp);
     DrawLine((int)pp.x, (int)pp.y, (int)mp.x, (int)mp.y, BLUE);
+
+    int x = 240;
+    float depth = 2 * x / (float)WINDOW_WIDTH - 1;
+    float ray_x = camera.dir.x + camera.plane.x * depth;
+    float ray_y = camera.dir.y + camera.plane.y * depth;
+    Vec2 ray_dir = {ray_x, ray_y};
+
+    CastResult res = cast_ray(ray_dir, player);
+
+    if (res.wall != 0) {
+        Vec2 mh = world_to_map(map, res.hit_pos);
+        DrawLine((int)pp.x, (int)pp.y, (int)mh.x, (int)mh.y, GREEN);
+        DrawCircle((int)mh.x, (int)mh.y, 2.5f, YELLOW);
+    }
+    else {
+        Vec2 wr = vec2_add(player, ray_dir);
+        Vec2 mr = world_to_map(map, wr);
+        DrawLine((int)pp.x, (int)pp.y, (int)mr.x, (int)mr.y, ORANGE);
+    }
 }
 
 int main(void)
