@@ -142,6 +142,35 @@ CastResult cast_ray(Vec2 ray_dir, Vec2 player)
     return res;
 }
 
+void render_world(Cam camera, Vec2 player)
+{
+    CastResult res;
+
+    for (int x = 0; x < WINDOW_WIDTH; x++) {
+        float depth = 2 * x / (float)WINDOW_WIDTH - 1;
+        float ray_x = camera.dir.x + camera.plane.x * depth;
+        float ray_y = camera.dir.y + camera.plane.y * depth;
+
+        res = cast_ray((Vec2){ray_x, ray_y}, player);
+        if (res.wall > 0) {
+            int h = (int)(WINDOW_HEIGHT / res.ray_dist);
+
+            int y1 = -h / 2 + WINDOW_HEIGHT / 2;
+            if (y1 < 0) y1 = 0;
+
+            int y2 = h / 2 + WINDOW_HEIGHT / 2;
+            if (y2 >= WINDOW_HEIGHT) y2 = WINDOW_HEIGHT - 1;
+
+            Color color = wall_colors[res.wall];
+            if (res.side == 1) {
+                color = ColorBrightness(color, 0.2f);
+            }
+
+            DrawLineEx((Vector2){x, y1}, (Vector2){x, y2}, 1.1f, color);
+        }
+    }
+}
+
 void render_map(Map map)
 {
     DrawRectangle(map.pos.x, map.pos.y, map.w, map.h, BLACK);
@@ -196,7 +225,6 @@ void render_rays_map(Map map, Cam camera, Vec2 player)
         Vec2 ray_dir = {ray_x, ray_y};
 
         CastResult res = cast_ray(ray_dir, player);
-
         if (res.wall != 0) {
             Vec2 mh = world_to_map(map, res.hit_pos);
             DrawLine((int)pp.x, (int)pp.y, (int)mh.x, (int)mh.y, GREEN);
@@ -248,6 +276,7 @@ int main(void)
 
         BeginDrawing();
         ClearBackground(BACKGROUND);
+        render_world(camera, player);
         render_map(map);
         render_map_player(map, camera, player);
         render_rays_map(map, camera, player);
