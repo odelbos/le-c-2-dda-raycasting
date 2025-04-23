@@ -183,24 +183,30 @@ void render_map_player(Map map, Cam camera, Vec2 player)
     Vec2 dp = vec2_add(camera.dir, player);
     Vec2 mp = world_to_map(map, dp);
     DrawLine((int)pp.x, (int)pp.y, (int)mp.x, (int)mp.y, BLUE);
+}
 
-    int x = 240;
-    float depth = 2 * x / (float)WINDOW_WIDTH - 1;
-    float ray_x = camera.dir.x + camera.plane.x * depth;
-    float ray_y = camera.dir.y + camera.plane.y * depth;
-    Vec2 ray_dir = {ray_x, ray_y};
+void render_rays_map(Map map, Cam camera, Vec2 player)
+{
+    Vec2 pp = world_to_map(map, player);
 
-    CastResult res = cast_ray(ray_dir, player);
+    for (int x = 0; x < WINDOW_WIDTH; x += 10) {
+        float depth = 2 * x / (float)WINDOW_WIDTH - 1;
+        float ray_x = camera.dir.x + camera.plane.x * depth;
+        float ray_y = camera.dir.y + camera.plane.y * depth;
+        Vec2 ray_dir = {ray_x, ray_y};
 
-    if (res.wall != 0) {
-        Vec2 mh = world_to_map(map, res.hit_pos);
-        DrawLine((int)pp.x, (int)pp.y, (int)mh.x, (int)mh.y, GREEN);
-        DrawCircle((int)mh.x, (int)mh.y, 2.5f, YELLOW);
-    }
-    else {
-        Vec2 wr = vec2_add(player, ray_dir);
-        Vec2 mr = world_to_map(map, wr);
-        DrawLine((int)pp.x, (int)pp.y, (int)mr.x, (int)mr.y, ORANGE);
+        CastResult res = cast_ray(ray_dir, player);
+
+        if (res.wall != 0) {
+            Vec2 mh = world_to_map(map, res.hit_pos);
+            DrawLine((int)pp.x, (int)pp.y, (int)mh.x, (int)mh.y, GREEN);
+            DrawCircle((int)mh.x, (int)mh.y, 2.5f, YELLOW);
+        }
+        else {
+            Vec2 wr = vec2_add(player, ray_dir);
+            Vec2 mr = world_to_map(map, wr);
+            DrawLine((int)pp.x, (int)pp.y, (int)mr.x, (int)mr.y, ORANGE);
+        }
     }
 }
 
@@ -244,6 +250,7 @@ int main(void)
         ClearBackground(BACKGROUND);
         render_map(map);
         render_map_player(map, camera, player);
+        render_rays_map(map, camera, player);
         EndDrawing();
     }
 
