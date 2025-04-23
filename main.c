@@ -47,6 +47,11 @@ Vec2 vec2_mul(Vec2 a, Vec2 b)
     return (Vec2){a.x * b.x, a.y * b.y};
 }
 
+Vec2 vec2_scale(Vec2 v, float factor)
+{
+    return (Vec2){v.x*factor, v.y*factor};
+}
+
 Vec2 vec2_rotate(Vec2 v, float angle)
 {
     float ca = cosf(angle);
@@ -148,10 +153,8 @@ void render_world(Cam camera, Vec2 player)
 
     for (int x = 0; x < WINDOW_WIDTH; x++) {
         float depth = 2 * x / (float)WINDOW_WIDTH - 1;
-        float ray_x = camera.dir.x + camera.plane.x * depth;
-        float ray_y = camera.dir.y + camera.plane.y * depth;
-
-        res = cast_ray((Vec2){ray_x, ray_y}, player);
+        Vec2 ray_dir = vec2_add(camera.dir, vec2_scale(camera.plane, depth));
+        res = cast_ray(ray_dir, player);
         if (res.wall > 0) {
             int h = (int)(WINDOW_HEIGHT / res.ray_dist);
 
@@ -220,10 +223,7 @@ void render_rays_map(Map map, Cam camera, Vec2 player)
 
     for (int x = 0; x < WINDOW_WIDTH; x += 10) {
         float depth = 2 * x / (float)WINDOW_WIDTH - 1;
-        float ray_x = camera.dir.x + camera.plane.x * depth;
-        float ray_y = camera.dir.y + camera.plane.y * depth;
-        Vec2 ray_dir = {ray_x, ray_y};
-
+        Vec2 ray_dir = vec2_add(camera.dir, vec2_scale(camera.plane, depth));
         CastResult res = cast_ray(ray_dir, player);
         if (res.wall != 0) {
             Vec2 mh = world_to_map(map, res.hit_pos);
