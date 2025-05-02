@@ -133,15 +133,13 @@ CastResult cast_ray(Vec2 ray_dir, Vec2 player)
 
     if (res.wall != 0) {
         if (res.side == 0) {
-            res.hit_pos = vec2_mul(ray_dir, (Vec2){dist_x - delta_x, dist_x - delta_x});
-            res.hit_pos = vec2_add(res.hit_pos, player);
             res.ray_dist = dist_x - delta_x;
         }
         else {
-            res.hit_pos = vec2_mul(ray_dir, (Vec2){dist_y - delta_y, dist_y - delta_y});
-            res.hit_pos = vec2_add(res.hit_pos, player);
             res.ray_dist = dist_y - delta_y;
         }
+        res.hit_pos = vec2_mul(ray_dir, (Vec2){res.ray_dist, res.ray_dist});
+        res.hit_pos = vec2_add(res.hit_pos, player);
     }
 
     return res;
@@ -260,6 +258,10 @@ int main(void)
     SetTargetFPS(60);
 
     while ( ! WindowShouldClose()) {
+
+        float t = GetFrameTime();
+        printf("t = %f\n", t);
+
         if (IsKeyDown(KEY_UP)) {
             player = vec2_add(player, vec2_mul(camera.dir, move_speed));
         }
